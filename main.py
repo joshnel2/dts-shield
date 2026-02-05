@@ -7,6 +7,10 @@ Start the web UI (recommended for lawyers)::
 
     python main.py serve [--host 0.0.0.0] [--port 8000]
 
+Process an entire folder of documents::
+
+    python main.py batch ./case-files --client "Smith v. Jones" [--no-recursive]
+
 Start the inbox watcher (headless background mode)::
 
     python main.py watch [--inbox ./inbox] [--client "Acme Corp"]
@@ -46,6 +50,26 @@ def _build_parser() -> argparse.ArgumentParser:
         type=int,
         default=8000,
         help="Port to listen on (default: %(default)s).",
+    )
+
+    # ---- batch (folder processing) ----
+    batch_parser = subparsers.add_parser(
+        "batch",
+        help="Process all documents in a folder (and sub-folders).",
+    )
+    batch_parser.add_argument(
+        "folder",
+        help="Path to the folder containing documents.",
+    )
+    batch_parser.add_argument(
+        "--client",
+        default="General",
+        help="Client/matter name (default: %(default)s).",
+    )
+    batch_parser.add_argument(
+        "--no-recursive",
+        action="store_true",
+        help="Do not search sub-folders.",
     )
 
     # ---- watch ----
@@ -108,6 +132,37 @@ def main(argv: list[str] | None = None) -> None:
             reload=False,
             log_level="info",
         )
+
+    elif args.command == "batch":
+        # Validate credentials
+        try:
+            settings.validate()
+        except ValueError as exc:
+            logger.error(str(exc))
+            sys.exit(1)
+
+        from legal_doc_engine.pipeline import process_folder
+
+        def _progress(current: int, total: int, name: str, status: str) -> None:
+            icon = "OK" if status == "completed" else "FAIL"
+            logger.info("[%d/%d] %s — %s", current, total, name, icon)
+
+        summary = process_folder(
+            args.folder,
+            client_name=args.client,
+            recursive=not args.no_recursive,
+            on_progress=_progress,
+        )
+        logger.info(
+            "Batch complete: %d succeeded, %d failed out of %d files.",
+            summary["succeeded"],
+            summary["failed"],
+            summary["total_files"],
+        )
+        if summary["errors"]:
+            logger.warning("Failed files:")
+            for err in summary["errors"]:
+                logger.warning("  %s — %s", err["source"], err["error"])
 
     elif args.command == "watch":
         # Validate credentials for headless mode

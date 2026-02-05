@@ -60,6 +60,7 @@
                 <nav class="flex items-center gap-1">
                     <button onclick="showView('dashboard')" id="nav-dashboard" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Dashboard</button>
                     <button onclick="showView('upload')" id="nav-upload" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Upload</button>
+                    <button onclick="showView('batch')" id="nav-batch" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Batch Folder</button>
                     <button onclick="showView('documents')" id="nav-documents" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Documents</button>
                     <button onclick="showView('browse')" id="nav-browse" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">File Browser</button>
                 </nav>
@@ -176,6 +177,79 @@
                 </div>
             </div>
 
+            <!-- ========== BATCH FOLDER VIEW ========== -->
+            <div id="view-batch" class="view fade-in hidden">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-navy-900">Batch Folder Processing</h2>
+                    <p class="text-gray-500 mt-1">Point to a folder on the server and organize every document inside it automatically</p>
+                </div>
+
+                <div class="max-w-3xl mx-auto">
+                    <!-- Folder Input Card -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-sm font-semibold text-navy-800 mb-2">Folder Path (on server)</label>
+                                <input id="batch-folder" type="text" placeholder="e.g. /home/docs/case-files or ./inbox"
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-navy-300 focus:border-navy-400 outline-none transition text-sm font-mono">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-navy-800 mb-2">Client / Matter Name</label>
+                                <input id="batch-client" type="text" value="General" placeholder="e.g. Smith v. Jones"
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-navy-300 focus:border-navy-400 outline-none transition text-sm">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-5">
+                            <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                <input id="batch-recursive" type="checkbox" checked class="w-4 h-4 rounded border-gray-300 text-navy-600 focus:ring-navy-500">
+                                Include sub-folders
+                            </label>
+                            <div class="flex items-center gap-3">
+                                <button onclick="scanFolder()" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
+                                    Preview Files
+                                </button>
+                                <button id="batch-start-btn" onclick="startBatch()" class="px-5 py-2 bg-navy-700 text-white rounded-lg text-sm font-medium hover:bg-navy-800 transition flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    Process All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scan Preview -->
+                    <div id="batch-preview" class="hidden mb-5"></div>
+
+                    <!-- Active Batch Progress -->
+                    <div id="batch-progress" class="hidden mb-5">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-base font-semibold text-navy-900">Processing Batch</h3>
+                                <span id="batch-status-badge"></span>
+                            </div>
+                            <div class="mb-3">
+                                <div class="flex items-center justify-between text-sm text-gray-500 mb-1">
+                                    <span id="batch-progress-label">0 of 0 files</span>
+                                    <span id="batch-progress-pct">0%</span>
+                                </div>
+                                <div class="w-full bg-gray-100 rounded-full h-2.5">
+                                    <div id="batch-progress-bar" class="bg-navy-500 h-2.5 rounded-full transition-all" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <p id="batch-current-file" class="text-xs text-gray-400"></p>
+                        </div>
+                    </div>
+
+                    <!-- Batch Results -->
+                    <div id="batch-results" class="hidden">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h3 class="text-base font-semibold text-navy-900 mb-4">Results</h3>
+                            <div id="batch-results-summary" class="grid grid-cols-3 gap-4 mb-4"></div>
+                            <div id="batch-results-files" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ========== DOCUMENTS VIEW ========== -->
             <div id="view-documents" class="view fade-in hidden">
                 <div class="flex items-center justify-between mb-8">
@@ -268,6 +342,7 @@ function showView(view) {
     if (view === 'dashboard') refreshDashboard();
     if (view === 'documents') refreshDocuments();
     if (view === 'browse') refreshBrowser();
+    if (view === 'batch') refreshBatchView();
 }
 
 // ================================================================== //
@@ -613,6 +688,173 @@ function renderTree(items, depth) {
             `;
         }
     }).join('');
+}
+
+// ================================================================== //
+// BATCH FOLDER PROCESSING
+// ================================================================== //
+let activeBatchId = null;
+let batchPollInterval = null;
+
+async function refreshBatchView() {
+    // If there's an active batch, resume polling
+    if (activeBatchId) startBatchPolling();
+}
+
+async function scanFolder() {
+    const folder = document.getElementById('batch-folder').value.trim();
+    if (!folder) { alert('Please enter a folder path.'); return; }
+
+    const recursive = document.getElementById('batch-recursive').checked;
+    const previewEl = document.getElementById('batch-preview');
+
+    try {
+        previewEl.classList.remove('hidden');
+        previewEl.innerHTML = '<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center text-gray-400 text-sm">Scanning folder...</div>';
+
+        const data = await api('/scan-folder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ folder_path: folder, recursive }),
+        });
+
+        if (data.total_files === 0) {
+            previewEl.innerHTML = `
+                <div class="bg-amber-50 rounded-xl border border-amber-200 p-5">
+                    <p class="text-sm font-medium text-amber-800">No supported documents found in this folder.</p>
+                    <p class="text-xs text-amber-600 mt-1">Supported types: PDF, DOCX, TIFF, JPEG, PNG, BMP</p>
+                </div>`;
+            return;
+        }
+
+        previewEl.innerHTML = `
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-sm font-semibold text-navy-800">Files Found: ${data.total_files}</h4>
+                    <span class="text-xs text-gray-400">${esc(data.folder)}</span>
+                </div>
+                <div class="space-y-1 max-h-48 overflow-y-auto">
+                    ${data.files.map(f => `
+                        <div class="flex items-center justify-between py-1.5 px-2 rounded hover:bg-gray-50 text-sm">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500 uppercase">${f.extension.replace('.', '')}</span>
+                                <span class="text-gray-700 truncate">${esc(f.name)}</span>
+                            </div>
+                            <span class="text-xs text-gray-400 flex-shrink-0 ml-3">${formatBytes(f.size)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>`;
+    } catch (e) {
+        previewEl.innerHTML = `
+            <div class="bg-red-50 rounded-xl border border-red-200 p-5">
+                <p class="text-sm font-medium text-red-800">Error: ${esc(e.message)}</p>
+            </div>`;
+    }
+}
+
+async function startBatch() {
+    const folder = document.getElementById('batch-folder').value.trim();
+    if (!folder) { alert('Please enter a folder path.'); return; }
+
+    const clientName = document.getElementById('batch-client').value || 'General';
+    const recursive = document.getElementById('batch-recursive').checked;
+    const btn = document.getElementById('batch-start-btn');
+
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Starting...';
+
+    try {
+        const data = await api('/batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ folder_path: folder, client_name: clientName, recursive }),
+        });
+
+        activeBatchId = data.batch_id;
+
+        // Show progress
+        document.getElementById('batch-preview').classList.add('hidden');
+        const progressEl = document.getElementById('batch-progress');
+        progressEl.classList.remove('hidden');
+        document.getElementById('batch-progress-label').textContent = `0 of ${data.total_files} files`;
+
+        // Start polling batch status
+        startBatchPolling();
+
+    } catch (e) {
+        alert('Failed to start batch: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Process All';
+    }
+}
+
+function startBatchPolling() {
+    if (batchPollInterval) clearInterval(batchPollInterval);
+    batchPollInterval = setInterval(async () => {
+        if (!activeBatchId) return;
+        try {
+            const job = await api(`/batch/${activeBatchId}`);
+            updateBatchProgress(job);
+
+            if (job.status === 'completed') {
+                clearInterval(batchPollInterval);
+                batchPollInterval = null;
+                showBatchResults(job);
+            }
+        } catch (e) { /* ignore */ }
+    }, 1500);
+    // Also start main polling so dashboard/documents update
+    startPolling();
+}
+
+function updateBatchProgress(job) {
+    const pct = job.total_files > 0 ? Math.round((job.current_index / job.total_files) * 100) : 0;
+    document.getElementById('batch-progress-label').textContent = `${job.current_index} of ${job.total_files} files`;
+    document.getElementById('batch-progress-pct').textContent = `${pct}%`;
+    document.getElementById('batch-progress-bar').style.width = `${pct}%`;
+    document.getElementById('batch-current-file').textContent = job.current_file ? `Currently processing: ${job.current_file}` : '';
+    document.getElementById('batch-status-badge').innerHTML = statusBadge(job.status);
+}
+
+function showBatchResults(job) {
+    document.getElementById('batch-progress').classList.add('hidden');
+    const resultsEl = document.getElementById('batch-results');
+    resultsEl.classList.remove('hidden');
+
+    document.getElementById('batch-results-summary').innerHTML = `
+        <div class="bg-navy-50 rounded-lg p-3 text-center">
+            <p class="text-2xl font-bold text-navy-900">${job.total_files}</p>
+            <p class="text-xs text-navy-600 uppercase font-medium">Total Files</p>
+        </div>
+        <div class="bg-emerald-50 rounded-lg p-3 text-center">
+            <p class="text-2xl font-bold text-emerald-600">${job.succeeded}</p>
+            <p class="text-xs text-emerald-700 uppercase font-medium">Succeeded</p>
+        </div>
+        <div class="bg-red-50 rounded-lg p-3 text-center">
+            <p class="text-2xl font-bold text-red-600">${job.failed_count}</p>
+            <p class="text-xs text-red-700 uppercase font-medium">Failed</p>
+        </div>
+    `;
+
+    const files = Object.values(job.files || {});
+    document.getElementById('batch-results-files').innerHTML = files.map(f => `
+        <div class="flex items-center justify-between py-2 px-3 rounded-lg ${f.status === 'completed' ? 'bg-emerald-50/50' : 'bg-red-50/50'}">
+            <div class="flex items-center gap-3 min-w-0">
+                ${f.status === 'completed'
+                    ? '<svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
+                    : '<svg class="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>'
+                }
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-800 truncate">${esc(f.filename)}</p>
+                    ${f.classification ? `<p class="text-xs text-gray-500">${esc(f.classification.document_type)} ${f.classification.parties?.length ? '- ' + f.classification.parties.join(', ') : ''}</p>` : ''}
+                    ${f.error ? `<p class="text-xs text-red-500">${esc(f.error)}</p>` : ''}
+                </div>
+            </div>
+            ${f.destination ? `<span class="text-xs text-gray-400 flex-shrink-0 ml-3 max-w-xs truncate" title="${esc(f.destination)}">${esc(f.destination.split('/').slice(-2).join('/'))}</span>` : ''}
+        </div>
+    `).join('');
 }
 
 // ================================================================== //

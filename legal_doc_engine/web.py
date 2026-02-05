@@ -23,6 +23,7 @@ from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 from legal_doc_engine.config import settings
 from legal_doc_engine.logging_config import setup_logging
@@ -43,10 +44,11 @@ app.add_middleware(
 )
 
 # ------------------------------------------------------------------ #
-# In-memory document store (persists for the lifetime of the server)
+# In-memory stores (persist for the lifetime of the server)
 # ------------------------------------------------------------------ #
 
 _documents: dict[str, dict[str, Any]] = {}
+_batch_jobs: dict[str, dict[str, Any]] = {}
 
 # ------------------------------------------------------------------ #
 # Helpers
@@ -268,6 +270,224 @@ async def get_stats():
         "processing": processing,
         "by_type": type_counts,
         "by_client": client_counts,
+    }
+
+
+# ------------------------------------------------------------------ #
+# Batch / Folder Processing
+# ------------------------------------------------------------------ #
+
+
+class BatchRequest(BaseModel):
+    """Request body for starting a batch folder job."""
+    folder_path: str
+    client_name: str = "General"
+    recursive: bool = True
+
+
+def _scan_folder(folder: Path, recursive: bool) -> list[Path]:
+    """Find all supported files in a directory."""
+    pattern = "**/*" if recursive else "*"
+    return sorted(
+        p for p in folder.glob(pattern)
+        if p.is_file() and p.suffix.lower() in SUPPORTED_EXTENSIONS
+    )
+
+
+async def _process_batch_in_background(batch_id: str, files: list[Path], client_name: str) -> None:
+    """Process every file in the batch sequentially in the background."""
+    from legal_doc_engine.engine import LegalDocEngine
+    from legal_doc_engine.chunker import chunk_markdown_by_headers
+    from legal_doc_engine.classifier import classify_document
+    from legal_doc_engine.organizer import organize_file
+
+    job = _batch_jobs[batch_id]
+    job["status"] = "processing"
+
+    for idx, file_path in enumerate(files):
+        file_entry: dict[str, Any] = {
+            "filename": file_path.name,
+            "relative_path": str(file_path),
+            "status": "processing",
+            "classification": None,
+            "destination": None,
+            "error": None,
+        }
+        job["files"][str(file_path)] = file_entry
+        job["current_index"] = idx + 1
+        job["current_file"] = file_path.name
+
+        # Also register in the main documents store so it shows on dashboard
+        doc_id = f"b-{batch_id}-{idx}"
+
+        _documents[doc_id] = {
+            "id": doc_id,
+            "original_filename": file_path.name,
+            "client_name": client_name,
+            "file_size": file_path.stat().st_size if file_path.exists() else 0,
+            "uploaded_at": datetime.now().isoformat(),
+            "status": "extracting",
+            "markdown": None,
+            "markdown_length": 0,
+            "num_chunks": 0,
+            "chunks": [],
+            "classification": None,
+            "destination": None,
+            "error": None,
+            "completed_at": None,
+            "batch_id": batch_id,
+        }
+
+        try:
+            # 1. Extract
+            _documents[doc_id]["status"] = "extracting"
+            engine = LegalDocEngine()
+            markdown = await asyncio.to_thread(engine.extract_markdown, file_path)
+            _documents[doc_id]["markdown"] = markdown
+            _documents[doc_id]["markdown_length"] = len(markdown)
+
+            # 2. Chunk
+            _documents[doc_id]["status"] = "chunking"
+            chunks = chunk_markdown_by_headers(markdown)
+            _documents[doc_id]["num_chunks"] = len(chunks)
+            _documents[doc_id]["chunks"] = [
+                {
+                    "index": c.index,
+                    "header_level": c.header_level,
+                    "header_text": c.header_text,
+                    "content": c.content[:500] + ("..." if len(c.content) > 500 else ""),
+                }
+                for c in chunks
+            ]
+
+            # 3. Classify
+            _documents[doc_id]["status"] = "classifying"
+            classification = await asyncio.to_thread(classify_document, markdown)
+            cls_dict = {
+                "document_type": classification.document_type,
+                "parties": classification.parties,
+                "suggested_filename": classification.suggested_filename,
+            }
+            _documents[doc_id]["classification"] = cls_dict
+
+            # 4. Organize
+            _documents[doc_id]["status"] = "organizing"
+            destination = organize_file(
+                file_path, classification, client_name=client_name
+            )
+            _documents[doc_id]["destination"] = str(destination)
+            _documents[doc_id]["status"] = "completed"
+            _documents[doc_id]["completed_at"] = datetime.now().isoformat()
+
+            file_entry["status"] = "completed"
+            file_entry["classification"] = cls_dict
+            file_entry["destination"] = str(destination)
+            job["succeeded"] += 1
+
+            logger.info("Batch %s: [%d/%d] %s -> %s", batch_id, idx + 1, len(files), file_path.name, destination)
+
+        except Exception as exc:
+            logger.exception("Batch %s: Failed on %s", batch_id, file_path.name)
+            file_entry["status"] = "failed"
+            file_entry["error"] = str(exc)
+            job["failed_count"] += 1
+
+            _documents[doc_id]["status"] = "failed"
+            _documents[doc_id]["error"] = str(exc)
+
+    job["status"] = "completed"
+    job["completed_at"] = datetime.now().isoformat()
+    logger.info(
+        "Batch %s complete: %d succeeded, %d failed",
+        batch_id,
+        job["succeeded"],
+        job["failed_count"],
+    )
+
+
+@app.post("/api/batch")
+async def start_batch(req: BatchRequest):
+    """Start processing all documents in a server-side folder."""
+    folder = Path(req.folder_path)
+    if not folder.is_dir():
+        raise HTTPException(400, f"'{req.folder_path}' is not a valid directory on the server.")
+
+    files = _scan_folder(folder, req.recursive)
+    if not files:
+        raise HTTPException(
+            400,
+            f"No supported documents found in '{req.folder_path}'. "
+            f"Supported types: {', '.join(sorted(SUPPORTED_EXTENSIONS))}",
+        )
+
+    batch_id = str(uuid.uuid4())[:8]
+    _batch_jobs[batch_id] = {
+        "id": batch_id,
+        "folder": str(folder),
+        "client_name": req.client_name,
+        "recursive": req.recursive,
+        "total_files": len(files),
+        "succeeded": 0,
+        "failed_count": 0,
+        "current_index": 0,
+        "current_file": None,
+        "status": "queued",
+        "started_at": datetime.now().isoformat(),
+        "completed_at": None,
+        "files": {},
+    }
+
+    asyncio.create_task(_process_batch_in_background(batch_id, files, req.client_name))
+
+    return {
+        "batch_id": batch_id,
+        "total_files": len(files),
+        "message": f"Batch started. Processing {len(files)} documents.",
+    }
+
+
+@app.get("/api/batch")
+async def list_batches():
+    """List all batch jobs."""
+    return sorted(
+        [
+            {k: v for k, v in job.items() if k != "files"}
+            for job in _batch_jobs.values()
+        ],
+        key=lambda j: j.get("started_at", ""),
+        reverse=True,
+    )
+
+
+@app.get("/api/batch/{batch_id}")
+async def get_batch(batch_id: str):
+    """Get full details for a batch job, including per-file results."""
+    if batch_id not in _batch_jobs:
+        raise HTTPException(404, "Batch job not found.")
+    return _batch_jobs[batch_id]
+
+
+@app.post("/api/scan-folder")
+async def scan_folder(req: BatchRequest):
+    """Preview what files would be processed in a folder (dry run)."""
+    folder = Path(req.folder_path)
+    if not folder.is_dir():
+        raise HTTPException(400, f"'{req.folder_path}' is not a valid directory on the server.")
+
+    files = _scan_folder(folder, req.recursive)
+    return {
+        "folder": str(folder),
+        "recursive": req.recursive,
+        "total_files": len(files),
+        "files": [
+            {
+                "name": f.name,
+                "path": str(f),
+                "size": f.stat().st_size,
+                "extension": f.suffix.lower(),
+            }
+            for f in files
+        ],
     }
 
 

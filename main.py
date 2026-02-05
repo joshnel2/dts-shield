@@ -3,7 +3,11 @@
 
 Usage
 -----
-Start the inbox watcher (default)::
+Start the web UI (recommended for lawyers)::
+
+    python main.py serve [--host 0.0.0.0] [--port 8000]
+
+Start the inbox watcher (headless background mode)::
 
     python main.py watch [--inbox ./inbox] [--client "Acme Corp"]
 
@@ -27,10 +31,27 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
+    # ---- serve (web UI) ----
+    serve_parser = subparsers.add_parser(
+        "serve",
+        help="Start the web UI for lawyers to upload and manage documents.",
+    )
+    serve_parser.add_argument(
+        "--host",
+        default="0.0.0.0",
+        help="Host to bind to (default: %(default)s).",
+    )
+    serve_parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port to listen on (default: %(default)s).",
+    )
+
     # ---- watch ----
     watch_parser = subparsers.add_parser(
         "watch",
-        help="Monitor the inbox folder for new documents.",
+        help="Monitor the inbox folder for new documents (headless).",
     )
     watch_parser.add_argument(
         "--inbox",
@@ -69,16 +90,33 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.command is None:
         parser.print_help()
+        print("\n  Tip: run 'python main.py serve' to start the web UI.\n")
         sys.exit(0)
 
-    # Validate credentials upfront
-    try:
-        settings.validate()
-    except ValueError as exc:
-        logger.error(str(exc))
-        sys.exit(1)
+    if args.command == "serve":
+        import uvicorn
 
-    if args.command == "watch":
+        logger.info(
+            "Starting Legal Doc Orchestrator web UI on %s:%d",
+            args.host,
+            args.port,
+        )
+        uvicorn.run(
+            "legal_doc_engine.web:app",
+            host=args.host,
+            port=args.port,
+            reload=False,
+            log_level="info",
+        )
+
+    elif args.command == "watch":
+        # Validate credentials for headless mode
+        try:
+            settings.validate()
+        except ValueError as exc:
+            logger.error(str(exc))
+            sys.exit(1)
+
         from legal_doc_engine.watcher import InboxWatcher
 
         watcher = InboxWatcher(
@@ -88,6 +126,13 @@ def main(argv: list[str] | None = None) -> None:
         watcher.start()
 
     elif args.command == "process":
+        # Validate credentials for direct processing
+        try:
+            settings.validate()
+        except ValueError as exc:
+            logger.error(str(exc))
+            sys.exit(1)
+
         from legal_doc_engine.pipeline import process_document
 
         result = process_document(args.file, client_name=args.client)

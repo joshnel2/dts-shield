@@ -28,18 +28,16 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
-        .markdown-preview h1 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem; }
-        .markdown-preview h2 { font-size: 1.25rem; font-weight: 600; margin: 0.8rem 0 0.4rem; }
-        .markdown-preview h3 { font-size: 1.1rem; font-weight: 600; margin: 0.6rem 0 0.3rem; }
-        .markdown-preview p { margin: 0.4rem 0; line-height: 1.6; }
-        .markdown-preview table { border-collapse: collapse; width: 100%; margin: 0.5rem 0; }
-        .markdown-preview th, .markdown-preview td { border: 1px solid #e2e8f0; padding: 0.5rem; text-align: left; font-size: 0.875rem; }
-        .markdown-preview th { background-color: #f8fafc; font-weight: 600; }
+        .chat-msg { white-space: pre-wrap; }
+        .chat-msg p { margin: 0.3rem 0; }
+        .chat-msg ul, .chat-msg ol { margin: 0.3rem 0 0.3rem 1.2rem; }
+        .chat-msg li { margin: 0.15rem 0; }
+        .chat-msg strong { font-weight: 600; }
+        mark { background: #fef08a; padding: 0 2px; border-radius: 2px; }
     </style>
 </head>
 <body class="h-full bg-gray-50 text-gray-800">
 
-<!-- App Shell -->
 <div id="app" class="h-full flex flex-col">
 
     <!-- Top Nav -->
@@ -48,240 +46,208 @@
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center gap-3">
                     <div class="w-9 h-9 bg-gold-500 rounded-lg flex items-center justify-center">
-                        <svg class="w-5 h-5 text-navy-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
-                        </svg>
+                        <svg class="w-5 h-5 text-navy-950" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
                     </div>
                     <div>
                         <h1 class="text-lg font-semibold tracking-tight">Legal Doc Orchestrator</h1>
-                        <p class="text-xs text-navy-300 -mt-0.5">AI-Powered Document Processing</p>
+                        <p class="text-xs text-navy-300 -mt-0.5">AI-Powered Legal Research</p>
                     </div>
                 </div>
                 <nav class="flex items-center gap-1">
-                    <button onclick="showView('dashboard')" id="nav-dashboard" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Dashboard</button>
-                    <button onclick="showView('upload')" id="nav-upload" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Upload</button>
-                    <button onclick="showView('batch')" id="nav-batch" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Batch Folder</button>
-                    <button onclick="showView('documents')" id="nav-documents" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Documents</button>
-                    <button onclick="showView('browse')" id="nav-browse" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">File Browser</button>
+                    <button onclick="showView('dashboard')" id="nav-dashboard" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Dashboard</button>
+                    <button onclick="showView('upload')" id="nav-upload" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Upload</button>
+                    <button onclick="showView('research')" id="nav-research" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Research</button>
+                    <button onclick="showView('search')" id="nav-search" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Search</button>
+                    <button onclick="showView('documents')" id="nav-documents" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Documents</button>
+                    <button onclick="showView('browse')" id="nav-browse" class="nav-btn px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-navy-800 text-navy-200">Files</button>
                 </nav>
             </div>
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="flex-1 overflow-y-auto">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-            <!-- ========== DASHBOARD VIEW ========== -->
+            <!-- ========== DASHBOARD ========== -->
             <div id="view-dashboard" class="view fade-in">
                 <div class="mb-8">
                     <h2 class="text-2xl font-bold text-navy-900">Dashboard</h2>
-                    <p class="text-gray-500 mt-1">Overview of your document processing activity</p>
+                    <p class="text-gray-500 mt-1">Your document processing and research overview</p>
                 </div>
-
-                <!-- Stats Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-8">
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Documents</p>
-                                <p id="stat-total" class="text-3xl font-bold text-navy-900 mt-1">0</p>
-                            </div>
-                            <div class="w-12 h-12 bg-navy-50 rounded-xl flex items-center justify-center">
-                                <svg class="w-6 h-6 text-navy-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            </div>
-                        </div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Documents</p>
+                        <p id="stat-total" class="text-3xl font-bold text-navy-900 mt-1">0</p>
                     </div>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Completed</p>
-                                <p id="stat-completed" class="text-3xl font-bold text-emerald-600 mt-1">0</p>
-                            </div>
-                            <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
-                                <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                            </div>
-                        </div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Completed</p>
+                        <p id="stat-completed" class="text-3xl font-bold text-emerald-600 mt-1">0</p>
                     </div>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Processing</p>
-                                <p id="stat-processing" class="text-3xl font-bold text-amber-600 mt-1">0</p>
-                            </div>
-                            <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
-                                <svg class="w-6 h-6 text-amber-600 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                            </div>
-                        </div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Processing</p>
+                        <p id="stat-processing" class="text-3xl font-bold text-amber-600 mt-1">0</p>
                     </div>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Failed</p>
-                                <p id="stat-failed" class="text-3xl font-bold text-red-600 mt-1">0</p>
-                            </div>
-                            <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
-                                <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                            </div>
-                        </div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Failed</p>
+                        <p id="stat-failed" class="text-3xl font-bold text-red-600 mt-1">0</p>
                     </div>
                 </div>
-
-                <!-- Recent Activity + Type Breakdown -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h3 class="text-lg font-semibold text-navy-900 mb-4">Recent Activity</h3>
-                        <div id="recent-activity" class="space-y-3">
-                            <p class="text-gray-400 text-sm py-8 text-center">No documents processed yet. Upload your first document to get started.</p>
-                        </div>
+                        <h3 class="text-lg font-semibold text-navy-900 mb-4">Recent Documents</h3>
+                        <div id="recent-activity" class="space-y-3"><p class="text-gray-400 text-sm py-8 text-center">No documents yet. Upload your first document.</p></div>
                     </div>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h3 class="text-lg font-semibold text-navy-900 mb-4">By Document Type</h3>
-                        <div id="type-breakdown" class="space-y-3">
-                            <p class="text-gray-400 text-sm py-8 text-center">No data yet</p>
-                        </div>
+                        <h3 class="text-lg font-semibold text-navy-900 mb-4">By Type</h3>
+                        <div id="type-breakdown" class="space-y-3"><p class="text-gray-400 text-sm py-8 text-center">No data yet</p></div>
                     </div>
                 </div>
             </div>
 
-            <!-- ========== UPLOAD VIEW ========== -->
+            <!-- ========== UPLOAD ========== -->
             <div id="view-upload" class="view fade-in hidden">
                 <div class="mb-8">
                     <h2 class="text-2xl font-bold text-navy-900">Upload Documents</h2>
-                    <p class="text-gray-500 mt-1">Upload legal documents for AI-powered extraction, classification, and organization</p>
+                    <p class="text-gray-500 mt-1">Upload legal documents for extraction, classification, and research</p>
                 </div>
-
                 <div class="max-w-2xl mx-auto">
-                    <!-- Client Name -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-5">
                         <label class="block text-sm font-semibold text-navy-800 mb-2">Client / Matter Name</label>
-                        <input id="client-name" type="text" value="General" placeholder="e.g. Acme Corp v. Globex Inc."
-                               class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-navy-300 focus:border-navy-400 outline-none transition text-sm">
-                        <p class="text-xs text-gray-400 mt-1.5">Documents will be organized under this client folder</p>
+                        <input id="client-name" type="text" value="General" placeholder="e.g. Acme Corp v. Globex Inc." class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-navy-300 focus:border-navy-400 outline-none transition text-sm">
                     </div>
-
-                    <!-- Drop Zone -->
                     <div id="drop-zone" class="drop-zone bg-white rounded-xl shadow-sm border-2 border-dashed border-gray-200 p-12 text-center cursor-pointer hover:border-navy-400 hover:bg-navy-50/30 transition-all">
                         <input type="file" id="file-input" class="hidden" accept=".pdf,.tiff,.tif,.jpeg,.jpg,.png,.bmp,.docx" multiple>
                         <div class="mx-auto w-16 h-16 bg-navy-50 rounded-2xl flex items-center justify-center mb-4">
-                            <svg class="w-8 h-8 text-navy-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                            </svg>
+                            <svg class="w-8 h-8 text-navy-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
                         </div>
                         <p class="text-base font-medium text-navy-800">Drop documents here or click to browse</p>
                         <p class="text-sm text-gray-400 mt-1">PDF, DOCX, TIFF, JPEG, PNG, BMP</p>
                     </div>
-
-                    <!-- Upload Queue -->
                     <div id="upload-queue" class="mt-5 space-y-3 hidden"></div>
                 </div>
             </div>
 
-            <!-- ========== BATCH FOLDER VIEW ========== -->
-            <div id="view-batch" class="view fade-in hidden">
-                <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-navy-900">Batch Folder Processing</h2>
-                    <p class="text-gray-500 mt-1">Point to a folder on the server and organize every document inside it automatically</p>
+            <!-- ========== RESEARCH (the main new feature) ========== -->
+            <div id="view-research" class="view fade-in hidden">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-navy-900">Research Hub</h2>
+                    <p class="text-gray-500 mt-1">Ask questions, extract key info, and generate summaries from your documents</p>
                 </div>
 
-                <div class="max-w-3xl mx-auto">
-                    <!-- Folder Input Card -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-5">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="block text-sm font-semibold text-navy-800 mb-2">Folder Path (on server)</label>
-                                <input id="batch-folder" type="text" placeholder="e.g. /home/docs/case-files or ./inbox"
-                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-navy-300 focus:border-navy-400 outline-none transition text-sm font-mono">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-navy-800 mb-2">Client / Matter Name</label>
-                                <input id="batch-client" type="text" value="General" placeholder="e.g. Smith v. Jones"
-                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-navy-300 focus:border-navy-400 outline-none transition text-sm">
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between mt-5">
-                            <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
-                                <input id="batch-recursive" type="checkbox" checked class="w-4 h-4 rounded border-gray-300 text-navy-600 focus:ring-navy-500">
-                                Include sub-folders
-                            </label>
-                            <div class="flex items-center gap-3">
-                                <button onclick="scanFolder()" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
-                                    Preview Files
-                                </button>
-                                <button id="batch-start-btn" onclick="startBatch()" class="px-5 py-2 bg-navy-700 text-white rounded-lg text-sm font-medium hover:bg-navy-800 transition flex items-center gap-2">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    Process All
-                                </button>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left: Document selector -->
+                    <div class="lg:col-span-1">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 sticky top-4">
+                            <h3 class="text-sm font-semibold text-navy-800 uppercase tracking-wider mb-3">Select Document(s)</h3>
+                            <div id="research-doc-list" class="space-y-1 max-h-[60vh] overflow-y-auto">
+                                <p class="text-gray-400 text-xs py-4 text-center">No processed documents</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Scan Preview -->
-                    <div id="batch-preview" class="hidden mb-5"></div>
-
-                    <!-- Active Batch Progress -->
-                    <div id="batch-progress" class="hidden mb-5">
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-base font-semibold text-navy-900">Processing Batch</h3>
-                                <span id="batch-status-badge"></span>
-                            </div>
-                            <div class="mb-3">
-                                <div class="flex items-center justify-between text-sm text-gray-500 mb-1">
-                                    <span id="batch-progress-label">0 of 0 files</span>
-                                    <span id="batch-progress-pct">0%</span>
+                    <!-- Right: Chat + Actions -->
+                    <div class="lg:col-span-2 space-y-5">
+                        <!-- Quick Actions -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <button onclick="doSummary()" id="btn-summary" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left hover:shadow-md hover:border-navy-200 transition group">
+                                <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center mb-2 group-hover:bg-blue-100 transition">
+                                    <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                 </div>
-                                <div class="w-full bg-gray-100 rounded-full h-2.5">
-                                    <div id="batch-progress-bar" class="bg-navy-500 h-2.5 rounded-full transition-all" style="width: 0%"></div>
+                                <p class="text-sm font-semibold text-navy-800">Summary</p>
+                                <p class="text-xs text-gray-400 mt-0.5">Executive overview</p>
+                            </button>
+                            <button onclick="doKeyInfo()" id="btn-keyinfo" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left hover:shadow-md hover:border-navy-200 transition group">
+                                <div class="w-9 h-9 bg-emerald-50 rounded-lg flex items-center justify-center mb-2 group-hover:bg-emerald-100 transition">
+                                    <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+                                </div>
+                                <p class="text-sm font-semibold text-navy-800">Key Info</p>
+                                <p class="text-xs text-gray-400 mt-0.5">Dates, amounts, parties</p>
+                            </button>
+                            <button onclick="doAskPreset('What are the key obligations and deadlines in this document?')" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 text-left hover:shadow-md hover:border-navy-200 transition group">
+                                <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center mb-2 group-hover:bg-amber-100 transition">
+                                    <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <p class="text-sm font-semibold text-navy-800">Deadlines</p>
+                                <p class="text-xs text-gray-400 mt-0.5">Obligations & timelines</p>
+                            </button>
+                        </div>
+
+                        <!-- Chat / Q&A -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col" style="min-height: 420px">
+                            <div class="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                                <h3 class="text-sm font-semibold text-navy-800">Ask About Your Documents</h3>
+                                <button onclick="clearChat()" class="text-xs text-gray-400 hover:text-gray-600 transition">Clear</button>
+                            </div>
+                            <div id="chat-messages" class="flex-1 overflow-y-auto p-5 space-y-4" style="max-height: 50vh">
+                                <div class="text-center py-8">
+                                    <p class="text-gray-400 text-sm">Select a document on the left, then ask a question or use the quick actions above.</p>
+                                    <div class="mt-4 flex flex-wrap justify-center gap-2">
+                                        <button onclick="doAskPreset('What is this document about?')" class="px-3 py-1.5 text-xs bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600 transition">What is this about?</button>
+                                        <button onclick="doAskPreset('Who are the parties involved?')" class="px-3 py-1.5 text-xs bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600 transition">Who are the parties?</button>
+                                        <button onclick="doAskPreset('What are the termination clauses?')" class="px-3 py-1.5 text-xs bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600 transition">Termination clauses?</button>
+                                        <button onclick="doAskPreset('Are there any indemnification provisions?')" class="px-3 py-1.5 text-xs bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600 transition">Indemnification?</button>
+                                        <button onclick="doAskPreset('What dollar amounts are mentioned?')" class="px-3 py-1.5 text-xs bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600 transition">Dollar amounts?</button>
+                                        <button onclick="doAskPreset('What is the governing law and jurisdiction?')" class="px-3 py-1.5 text-xs bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600 transition">Governing law?</button>
+                                    </div>
                                 </div>
                             </div>
-                            <p id="batch-current-file" class="text-xs text-gray-400"></p>
+                            <div class="px-4 py-3 border-t border-gray-100">
+                                <div class="flex gap-3">
+                                    <input id="chat-input" type="text" placeholder="Ask a question about the selected document..." class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-navy-300 focus:border-navy-400 outline-none transition text-sm" onkeydown="if(event.key==='Enter')sendChat()">
+                                    <button onclick="sendChat()" class="px-5 py-2.5 bg-navy-700 text-white rounded-lg text-sm font-medium hover:bg-navy-800 transition flex items-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+                                        Ask
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Batch Results -->
-                    <div id="batch-results" class="hidden">
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <h3 class="text-base font-semibold text-navy-900 mb-4">Results</h3>
-                            <div id="batch-results-summary" class="grid grid-cols-3 gap-4 mb-4"></div>
-                            <div id="batch-results-files" class="space-y-2 max-h-96 overflow-y-auto"></div>
-                        </div>
+                        <!-- Results panel for key info / summary -->
+                        <div id="research-results" class="hidden"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- ========== DOCUMENTS VIEW ========== -->
+            <!-- ========== SEARCH ========== -->
+            <div id="view-search" class="view fade-in hidden">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-navy-900">Search Across Documents</h2>
+                    <p class="text-gray-500 mt-1">Find information across all your processed legal documents</p>
+                </div>
+                <div class="max-w-3xl mx-auto">
+                    <div class="flex gap-3 mb-6">
+                        <input id="search-input" type="text" placeholder='e.g. "force majeure", "indemnification cap", "30-day notice"' class="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-navy-300 focus:border-navy-400 outline-none transition text-sm" onkeydown="if(event.key==='Enter')doSearch()">
+                        <button onclick="doSearch()" class="px-6 py-3 bg-navy-700 text-white rounded-xl text-sm font-medium hover:bg-navy-800 transition">Search</button>
+                    </div>
+                    <div id="search-results"><p class="text-gray-400 text-center py-12">Enter a search term to find it across all your documents.</p></div>
+                </div>
+            </div>
+
+            <!-- ========== DOCUMENTS ========== -->
             <div id="view-documents" class="view fade-in hidden">
                 <div class="flex items-center justify-between mb-8">
                     <div>
-                        <h2 class="text-2xl font-bold text-navy-900">Processed Documents</h2>
-                        <p class="text-gray-500 mt-1">View extraction results, classifications, and organized locations</p>
+                        <h2 class="text-2xl font-bold text-navy-900">All Documents</h2>
+                        <p class="text-gray-500 mt-1">View all processed documents and their details</p>
                     </div>
                     <button onclick="refreshDocuments()" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         Refresh
                     </button>
                 </div>
-                <div id="documents-list" class="space-y-4">
-                    <p class="text-gray-400 text-center py-12">No documents yet</p>
-                </div>
+                <div id="documents-list" class="space-y-4"><p class="text-gray-400 text-center py-12">No documents yet</p></div>
             </div>
 
-            <!-- ========== BROWSE VIEW ========== -->
+            <!-- ========== FILE BROWSER ========== -->
             <div id="view-browse" class="view fade-in hidden">
                 <div class="flex items-center justify-between mb-8">
                     <div>
                         <h2 class="text-2xl font-bold text-navy-900">Organized Files</h2>
                         <p class="text-gray-500 mt-1">Browse the auto-organized document hierarchy</p>
                     </div>
-                    <button onclick="refreshBrowser()" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        Refresh
-                    </button>
+                    <button onclick="refreshBrowser()" class="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition">Refresh</button>
                 </div>
-                <div id="file-browser" class="bg-white rounded-xl shadow-sm border border-gray-100">
-                    <p class="text-gray-400 text-center py-12">No organized files yet</p>
-                </div>
+                <div id="file-browser" class="bg-white rounded-xl shadow-sm border border-gray-100"><p class="text-gray-400 text-center py-12">No organized files yet</p></div>
             </div>
 
             <!-- ========== DOCUMENT DETAIL MODAL ========== -->
@@ -293,27 +259,24 @@
                             <h3 id="modal-title" class="text-lg font-semibold text-navy-900">Document Details</h3>
                             <p id="modal-subtitle" class="text-sm text-gray-500"></p>
                         </div>
-                        <button onclick="closeModal()" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <button onclick="modalResearch()" class="px-3 py-1.5 bg-navy-50 text-navy-700 rounded-lg text-xs font-medium hover:bg-navy-100 transition">Open in Research</button>
+                            <button onclick="closeModal()" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex-1 overflow-y-auto p-6">
-                        <div id="modal-content"></div>
-                    </div>
+                    <div class="flex-1 overflow-y-auto p-6"><div id="modal-content"></div></div>
                 </div>
             </div>
 
         </div>
     </main>
 
-    <!-- Footer -->
     <footer class="bg-white border-t border-gray-100 py-3 flex-shrink-0">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-            <p class="text-xs text-gray-400">Legal Doc Orchestrator v1.0 &mdash; Powered by Azure AI Foundry</p>
-            <div class="flex items-center gap-2 text-xs text-gray-400">
-                <span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span>
-                System Online
-            </div>
+            <p class="text-xs text-gray-400">Legal Doc Orchestrator v2.0 &mdash; AI-Powered Research &amp; Organization</p>
+            <div class="flex items-center gap-2 text-xs text-gray-400"><span class="w-2 h-2 bg-emerald-400 rounded-full pulse-dot"></span>System Online</div>
         </div>
     </footer>
 </div>
@@ -324,6 +287,8 @@
 // ================================================================== //
 let currentView = 'dashboard';
 let pollInterval = null;
+let selectedDocIds = new Set();
+let currentModalDocId = null;
 
 // ================================================================== //
 // NAVIGATION
@@ -331,29 +296,22 @@ let pollInterval = null;
 function showView(view) {
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     document.getElementById(`view-${view}`).classList.remove('hidden');
-    document.querySelectorAll('.nav-btn').forEach(b => {
-        b.classList.remove('bg-navy-700', 'text-white');
-        b.classList.add('text-navy-200');
-    });
-    document.getElementById(`nav-${view}`).classList.add('bg-navy-700', 'text-white');
-    document.getElementById(`nav-${view}`).classList.remove('text-navy-200');
+    document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('bg-navy-700','text-white'); b.classList.add('text-navy-200'); });
+    const btn = document.getElementById(`nav-${view}`);
+    if (btn) { btn.classList.add('bg-navy-700','text-white'); btn.classList.remove('text-navy-200'); }
     currentView = view;
-
     if (view === 'dashboard') refreshDashboard();
     if (view === 'documents') refreshDocuments();
     if (view === 'browse') refreshBrowser();
-    if (view === 'batch') refreshBatchView();
+    if (view === 'research') refreshResearchDocList();
 }
 
 // ================================================================== //
-// API CALLS
+// API
 // ================================================================== //
 async function api(path, opts = {}) {
     const res = await fetch(`/api${path}`, opts);
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: res.statusText }));
-        throw new Error(err.detail || 'API error');
-    }
+    if (!res.ok) { const err = await res.json().catch(() => ({ detail: res.statusText })); throw new Error(err.detail || 'API error'); }
     return res.json();
 }
 
@@ -363,55 +321,27 @@ async function api(path, opts = {}) {
 async function refreshDashboard() {
     try {
         const [stats, docs] = await Promise.all([api('/stats'), api('/documents')]);
-
         document.getElementById('stat-total').textContent = stats.total_documents;
         document.getElementById('stat-completed').textContent = stats.completed;
         document.getElementById('stat-processing').textContent = stats.processing;
         document.getElementById('stat-failed').textContent = stats.failed;
-
-        // Recent activity
         const recentEl = document.getElementById('recent-activity');
-        if (docs.length === 0) {
-            recentEl.innerHTML = '<p class="text-gray-400 text-sm py-8 text-center">No documents processed yet. Upload your first document to get started.</p>';
-        } else {
+        if (docs.length === 0) { recentEl.innerHTML = '<p class="text-gray-400 text-sm py-8 text-center">No documents yet. Upload your first document.</p>'; }
+        else {
             recentEl.innerHTML = docs.slice(0, 8).map(doc => `
-                <div class="flex items-center justify-between py-2.5 px-3 rounded-lg hover:bg-gray-50 transition cursor-pointer" onclick="openDocDetail('${doc.id}')">
+                <div class="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 transition cursor-pointer" onclick="openDocDetail('${doc.id}')">
                     <div class="flex items-center gap-3 min-w-0">
                         ${statusIcon(doc.status)}
-                        <div class="min-w-0">
-                            <p class="text-sm font-medium text-gray-800 truncate">${esc(doc.original_filename)}</p>
-                            <p class="text-xs text-gray-400">${esc(doc.client_name)} &middot; ${timeAgo(doc.uploaded_at)}</p>
-                        </div>
+                        <div class="min-w-0"><p class="text-sm font-medium text-gray-800 truncate">${esc(doc.original_filename)}</p><p class="text-xs text-gray-400">${esc(doc.client_name)} &middot; ${timeAgo(doc.uploaded_at)}</p></div>
                     </div>
-                    <div class="flex-shrink-0 ml-3">
-                        ${doc.classification ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-navy-50 text-navy-700">${esc(doc.classification.document_type)}</span>` : statusBadge(doc.status)}
-                    </div>
-                </div>
-            `).join('');
+                    ${doc.classification ? `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-navy-50 text-navy-700">${esc(doc.classification.document_type)}</span>` : statusBadge(doc.status)}
+                </div>`).join('');
         }
-
-        // Type breakdown
         const typeEl = document.getElementById('type-breakdown');
         const types = Object.entries(stats.by_type || {});
-        if (types.length === 0) {
-            typeEl.innerHTML = '<p class="text-gray-400 text-sm py-8 text-center">No data yet</p>';
-        } else {
-            const maxCount = Math.max(...types.map(([,c]) => c));
-            typeEl.innerHTML = types.sort((a,b) => b[1]-a[1]).map(([type, count]) => `
-                <div>
-                    <div class="flex items-center justify-between text-sm mb-1">
-                        <span class="font-medium text-gray-700">${esc(type)}</span>
-                        <span class="text-gray-400">${count}</span>
-                    </div>
-                    <div class="w-full bg-gray-100 rounded-full h-2">
-                        <div class="bg-navy-500 h-2 rounded-full transition-all" style="width: ${(count/maxCount*100).toFixed(0)}%"></div>
-                    </div>
-                </div>
-            `).join('');
-        }
-    } catch (e) {
-        console.error('Dashboard refresh failed:', e);
-    }
+        if (types.length === 0) { typeEl.innerHTML = '<p class="text-gray-400 text-sm py-8 text-center">No data yet</p>'; }
+        else { const mx = Math.max(...types.map(([,c])=>c)); typeEl.innerHTML = types.sort((a,b)=>b[1]-a[1]).map(([t,c])=>`<div><div class="flex justify-between text-sm mb-1"><span class="font-medium text-gray-700">${esc(t)}</span><span class="text-gray-400">${c}</span></div><div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-navy-500 h-2 rounded-full" style="width:${(c/mx*100).toFixed(0)}%"></div></div></div>`).join(''); }
+    } catch (e) { console.error('Dashboard error:', e); }
 }
 
 // ================================================================== //
@@ -419,83 +349,199 @@ async function refreshDashboard() {
 // ================================================================== //
 const dropZone = document.getElementById('drop-zone');
 const fileInput = document.getElementById('file-input');
-
 dropZone.addEventListener('click', () => fileInput.click());
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropZone.classList.remove('dragover');
-    handleFiles(e.dataTransfer.files);
-});
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
 fileInput.addEventListener('change', () => handleFiles(fileInput.files));
 
 function handleFiles(files) {
-    const queue = document.getElementById('upload-queue');
-    queue.classList.remove('hidden');
-
+    const queue = document.getElementById('upload-queue'); queue.classList.remove('hidden');
     Array.from(files).forEach(file => {
         const id = 'uq-' + Math.random().toString(36).slice(2, 8);
-        const item = document.createElement('div');
-        item.id = id;
+        const item = document.createElement('div'); item.id = id;
         item.className = 'bg-white rounded-xl shadow-sm border border-gray-100 p-4 fade-in';
-        item.innerHTML = `
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5 text-navy-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </div>
-                    <div class="min-w-0">
-                        <p class="text-sm font-medium text-gray-800 truncate">${esc(file.name)}</p>
-                        <p class="text-xs text-gray-400">${formatBytes(file.size)}</p>
-                    </div>
-                </div>
-                <span id="${id}-status" class="text-xs font-medium text-amber-600 flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                    Uploading...
-                </span>
-            </div>
-            <div id="${id}-bar" class="mt-3 w-full bg-gray-100 rounded-full h-1.5">
-                <div class="bg-navy-500 h-1.5 rounded-full transition-all" style="width: 20%"></div>
-            </div>
-        `;
+        item.innerHTML = `<div class="flex items-center justify-between"><div class="flex items-center gap-3 min-w-0"><div class="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center"><svg class="w-5 h-5 text-navy-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div><div class="min-w-0"><p class="text-sm font-medium text-gray-800 truncate">${esc(file.name)}</p><p class="text-xs text-gray-400">${formatBytes(file.size)}</p></div></div><span id="${id}-status" class="text-xs font-medium text-amber-600 flex items-center gap-1.5"><svg class="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Uploading...</span></div><div id="${id}-bar" class="mt-3 w-full bg-gray-100 rounded-full h-1.5"><div class="bg-navy-500 h-1.5 rounded-full transition-all" style="width:20%"></div></div>`;
         queue.appendChild(item);
-
         uploadFile(file, id);
     });
 }
 
-async function uploadFile(file, elementId) {
-    const clientName = document.getElementById('client-name').value || 'General';
-    const statusEl = document.getElementById(`${elementId}-status`);
-    const barEl = document.getElementById(`${elementId}-bar`).firstElementChild;
-
+async function uploadFile(file, elId) {
+    const cn = document.getElementById('client-name').value || 'General';
+    const st = document.getElementById(`${elId}-status`), bar = document.getElementById(`${elId}-bar`).firstElementChild;
     try {
-        barEl.style.width = '50%';
-        const form = new FormData();
-        form.append('file', file);
-        form.append('client_name', clientName);
-
-        const res = await fetch('/api/upload', { method: 'POST', body: form });
-        if (!res.ok) throw new Error((await res.json()).detail || 'Upload failed');
-
-        const data = await res.json();
-        barEl.style.width = '100%';
-        barEl.classList.remove('bg-navy-500');
-        barEl.classList.add('bg-emerald-500');
-        statusEl.innerHTML = `
-            <svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-            <span class="text-emerald-600">Processing (${data.id})</span>
-        `;
-
-        // Start polling for this doc
+        bar.style.width='50%'; const form = new FormData(); form.append('file', file); form.append('client_name', cn);
+        const res = await fetch('/api/upload', {method:'POST', body:form}); if(!res.ok) throw new Error((await res.json()).detail||'Upload failed');
+        const data = await res.json(); bar.style.width='100%'; bar.classList.replace('bg-navy-500','bg-emerald-500');
+        st.innerHTML = `<svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span class="text-emerald-600">Processing (${data.id})</span>`;
         startPolling();
-    } catch (e) {
-        barEl.style.width = '100%';
-        barEl.classList.remove('bg-navy-500');
-        barEl.classList.add('bg-red-500');
-        statusEl.innerHTML = `<span class="text-red-600">Failed: ${esc(e.message)}</span>`;
+    } catch (e) { bar.style.width='100%'; bar.classList.replace('bg-navy-500','bg-red-500'); st.innerHTML = `<span class="text-red-600">Failed: ${esc(e.message)}</span>`; }
+}
+
+// ================================================================== //
+// RESEARCH HUB
+// ================================================================== //
+async function refreshResearchDocList() {
+    try {
+        const docs = await api('/documents');
+        const el = document.getElementById('research-doc-list');
+        const completed = docs.filter(d => d.status === 'completed');
+        if (completed.length === 0) { el.innerHTML = '<p class="text-gray-400 text-xs py-4 text-center">No processed documents yet</p>'; return; }
+        el.innerHTML = completed.map(doc => `
+            <label class="flex items-center gap-2.5 py-2 px-2 rounded-lg hover:bg-gray-50 cursor-pointer transition ${selectedDocIds.has(doc.id) ? 'bg-navy-50 border border-navy-200' : ''}">
+                <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-navy-600 focus:ring-navy-500" ${selectedDocIds.has(doc.id) ? 'checked' : ''} onchange="toggleDocSelect('${doc.id}')">
+                <div class="min-w-0">
+                    <p class="text-sm font-medium text-gray-800 truncate">${esc(doc.original_filename)}</p>
+                    <p class="text-xs text-gray-400">${esc(doc.client_name)} ${doc.classification ? '&middot; ' + esc(doc.classification.document_type) : ''}</p>
+                </div>
+            </label>`).join('');
+    } catch (e) { console.error(e); }
+}
+
+function toggleDocSelect(docId) {
+    if (selectedDocIds.has(docId)) selectedDocIds.delete(docId); else selectedDocIds.add(docId);
+    refreshResearchDocList();
+}
+
+function getSelectedIds() {
+    const ids = [...selectedDocIds];
+    if (ids.length === 0) { alert('Please select at least one document on the left.'); return null; }
+    return ids;
+}
+
+// Chat Q&A
+async function sendChat() {
+    const input = document.getElementById('chat-input');
+    const q = input.value.trim(); if (!q) return;
+    const ids = getSelectedIds(); if (!ids) return;
+    input.value = '';
+    addChatMsg('user', q);
+    addChatMsg('loading', '');
+    try {
+        const body = ids.length === 1 ? { doc_id: ids[0], question: q } : { doc_ids: ids, question: q };
+        const data = await api('/chat', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        removeChatLoading();
+        addChatMsg('assistant', data.answer);
+    } catch (e) { removeChatLoading(); addChatMsg('error', e.message); }
+}
+
+function doAskPreset(question) {
+    document.getElementById('chat-input').value = question;
+    sendChat();
+}
+
+function addChatMsg(role, text) {
+    const el = document.getElementById('chat-messages');
+    // Remove placeholder
+    if (el.querySelector('.text-center')) el.querySelector('.text-center').remove();
+    const div = document.createElement('div');
+    if (role === 'user') {
+        div.className = 'flex justify-end';
+        div.innerHTML = `<div class="bg-navy-700 text-white rounded-2xl rounded-tr-md px-4 py-2.5 max-w-lg text-sm">${esc(text)}</div>`;
+    } else if (role === 'loading') {
+        div.className = 'flex justify-start chat-loading';
+        div.innerHTML = `<div class="bg-gray-100 rounded-2xl rounded-tl-md px-4 py-3 text-sm text-gray-500 flex items-center gap-2"><svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Thinking...</div>`;
+    } else if (role === 'error') {
+        div.className = 'flex justify-start';
+        div.innerHTML = `<div class="bg-red-50 text-red-700 rounded-2xl rounded-tl-md px-4 py-2.5 max-w-lg text-sm">Error: ${esc(text)}</div>`;
+    } else {
+        div.className = 'flex justify-start';
+        div.innerHTML = `<div class="bg-gray-100 rounded-2xl rounded-tl-md px-4 py-3 max-w-2xl text-sm chat-msg text-gray-800 leading-relaxed">${formatAnswer(text)}</div>`;
     }
+    el.appendChild(div);
+    el.scrollTop = el.scrollHeight;
+}
+
+function removeChatLoading() { const l = document.querySelector('.chat-loading'); if (l) l.remove(); }
+function clearChat() { document.getElementById('chat-messages').innerHTML = '<div class="text-center py-8"><p class="text-gray-400 text-sm">Chat cleared. Ask a new question.</p></div>'; }
+
+function formatAnswer(text) {
+    // Simple markdown-ish formatting
+    return esc(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n- /g, '\n&bull; ').replace(/\n/g, '<br>');
+}
+
+// Summary
+async function doSummary() {
+    const ids = getSelectedIds(); if (!ids) return;
+    const docId = ids[0]; // summary works on single doc
+    const resultsEl = document.getElementById('research-results');
+    resultsEl.classList.remove('hidden');
+    resultsEl.innerHTML = '<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><div class="flex items-center gap-2 text-gray-500 text-sm"><svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Generating summary...</div></div>';
+    try {
+        const data = await api(`/summary/${docId}`, { method: 'POST' });
+        resultsEl.innerHTML = `<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><h4 class="text-sm font-semibold text-navy-800 uppercase tracking-wider mb-3">Executive Summary</h4><div class="text-sm text-gray-700 leading-relaxed chat-msg">${formatAnswer(data.summary)}</div></div>`;
+    } catch (e) { resultsEl.innerHTML = `<div class="bg-red-50 rounded-xl border border-red-200 p-5 text-sm text-red-700">${esc(e.message)}</div>`; }
+}
+
+// Key Info
+async function doKeyInfo() {
+    const ids = getSelectedIds(); if (!ids) return;
+    const docId = ids[0];
+    const resultsEl = document.getElementById('research-results');
+    resultsEl.classList.remove('hidden');
+    resultsEl.innerHTML = '<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6"><div class="flex items-center gap-2 text-gray-500 text-sm"><svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Extracting key information...</div></div>';
+    try {
+        const info = await api(`/key-info/${docId}`, { method: 'POST' });
+        resultsEl.innerHTML = `<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
+            <h4 class="text-sm font-semibold text-navy-800 uppercase tracking-wider">Key Information</h4>
+            ${info.summary ? `<div class="bg-navy-50 rounded-lg p-4"><p class="text-xs text-navy-500 font-medium uppercase mb-1">Summary</p><p class="text-sm text-navy-900">${esc(info.summary)}</p></div>` : ''}
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                ${infoCard('Document Date', info.document_date)}
+                ${infoCard('Effective Date', info.effective_date)}
+                ${infoCard('Expiration Date', info.expiration_date)}
+                ${infoCard('Governing Law', info.governing_law)}
+                ${infoCard('Case Number', info.case_number)}
+            </div>
+            ${info.parties?.length ? `<div><p class="text-xs font-semibold text-navy-800 uppercase mb-2">Parties</p><div class="flex flex-wrap gap-2">${info.parties.map(p => `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-navy-50 text-navy-700">${esc(p.name||p)} ${p.role ? '<span class="text-navy-400 ml-1">(' + esc(p.role) + ')</span>' : ''}</span>`).join('')}</div></div>` : ''}
+            ${info.monetary_amounts?.length ? `<div><p class="text-xs font-semibold text-navy-800 uppercase mb-2">Monetary Amounts</p><div class="space-y-1">${info.monetary_amounts.map(m => `<div class="flex items-center gap-2 text-sm"><span class="font-semibold text-emerald-700">${esc(m.amount||m)}</span><span class="text-gray-400">&mdash;</span><span class="text-gray-600">${esc(m.description||'')}</span></div>`).join('')}</div></div>` : ''}
+            ${info.key_dates?.length ? `<div><p class="text-xs font-semibold text-navy-800 uppercase mb-2">Key Dates & Deadlines</p><div class="space-y-1">${info.key_dates.map(d => `<div class="flex items-center gap-2 text-sm"><span class="font-medium text-amber-700">${esc(d.date||d)}</span><span class="text-gray-400">&mdash;</span><span class="text-gray-600">${esc(d.description||'')}</span></div>`).join('')}</div></div>` : ''}
+            ${info.obligations?.length ? `<div><p class="text-xs font-semibold text-navy-800 uppercase mb-2">Obligations</p><ul class="list-disc list-inside space-y-1 text-sm text-gray-700">${info.obligations.map(o => `<li>${esc(o)}</li>`).join('')}</ul></div>` : ''}
+            ${info.key_clauses?.length ? `<div><p class="text-xs font-semibold text-navy-800 uppercase mb-2">Key Clauses</p><div class="space-y-2">${info.key_clauses.map(c => `<div class="bg-gray-50 rounded-lg p-3"><p class="text-sm font-medium text-navy-800">${esc(c.title||'')}</p><p class="text-xs text-gray-600 mt-0.5">${esc(c.summary||'')}</p></div>`).join('')}</div></div>` : ''}
+        </div>`;
+    } catch (e) { resultsEl.innerHTML = `<div class="bg-red-50 rounded-xl border border-red-200 p-5 text-sm text-red-700">${esc(e.message)}</div>`; }
+}
+
+function infoCard(label, value) {
+    if (!value) return '';
+    return `<div class="bg-gray-50 rounded-lg p-3"><p class="text-xs text-gray-500 font-medium">${label}</p><p class="text-sm font-semibold text-navy-900 mt-0.5">${esc(value)}</p></div>`;
+}
+
+// ================================================================== //
+// CROSS-DOCUMENT SEARCH
+// ================================================================== //
+async function doSearch() {
+    const q = document.getElementById('search-input').value.trim();
+    if (!q) return;
+    const el = document.getElementById('search-results');
+    el.innerHTML = '<div class="flex items-center justify-center gap-2 py-12 text-gray-400 text-sm"><svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>Searching...</div>';
+    try {
+        const data = await api('/search', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ query: q }) });
+        if (data.results.length === 0) { el.innerHTML = `<div class="text-center py-12"><p class="text-gray-500 text-sm">No results found for "${esc(q)}"</p><p class="text-gray-400 text-xs mt-1">Try different keywords or upload more documents</p></div>`; return; }
+        el.innerHTML = `<p class="text-sm text-gray-500 mb-4">${data.total_results} result${data.total_results!==1?'s':''} for "<strong>${esc(q)}</strong>"</p>` +
+            data.results.map(r => `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-3 hover:shadow-md transition cursor-pointer" onclick="openDocDetail('${r.doc_id}')">
+                    <div class="flex items-start justify-between mb-2">
+                        <div>
+                            <p class="text-sm font-semibold text-navy-900">${esc(r.filename)}</p>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <span class="text-xs text-gray-400">${esc(r.client_name)}</span>
+                                ${r.document_type ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-navy-50 text-navy-700">${esc(r.document_type)}</span>` : ''}
+                            </div>
+                        </div>
+                        <span class="text-xs text-gray-400">Score: ${r.score}</span>
+                    </div>
+                    <p class="text-sm text-gray-600 bg-gray-50 rounded-lg p-3 leading-relaxed">${highlightQuery(r.snippet, q)}</p>
+                </div>`).join('');
+    } catch (e) { el.innerHTML = `<div class="text-red-600 text-sm py-4">${esc(e.message)}</div>`; }
+}
+
+function highlightQuery(text, query) {
+    let html = esc(text);
+    query.split(/\s+/).forEach(term => {
+        if (term.length > 1) { const re = new RegExp('(' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'); html = html.replace(re, '<mark>$1</mark>'); }
+    });
+    return html;
 }
 
 // ================================================================== //
@@ -504,139 +550,48 @@ async function uploadFile(file, elementId) {
 async function refreshDocuments() {
     try {
         const docs = await api('/documents');
-        const listEl = document.getElementById('documents-list');
-
-        if (docs.length === 0) {
-            listEl.innerHTML = '<p class="text-gray-400 text-center py-12">No documents yet. Go to Upload to process your first document.</p>';
-            return;
-        }
-
-        listEl.innerHTML = docs.map(doc => `
+        const el = document.getElementById('documents-list');
+        if (docs.length === 0) { el.innerHTML = '<p class="text-gray-400 text-center py-12">No documents yet.</p>'; return; }
+        el.innerHTML = docs.map(doc => `
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition cursor-pointer fade-in" onclick="openDocDetail('${doc.id}')">
                 <div class="flex items-start justify-between">
                     <div class="flex items-start gap-4 min-w-0">
-                        <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${doc.status === 'completed' ? 'bg-emerald-50' : doc.status === 'failed' ? 'bg-red-50' : 'bg-amber-50'}">
-                            ${doc.status === 'completed'
-                                ? '<svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
-                                : doc.status === 'failed'
-                                ? '<svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>'
-                                : '<svg class="w-5 h-5 text-amber-600 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>'
-                            }
+                        <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${doc.status==='completed'?'bg-emerald-50':doc.status==='failed'?'bg-red-50':'bg-amber-50'}">
+                            ${doc.status==='completed'?'<svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>':doc.status==='failed'?'<svg class="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>':'<svg class="w-5 h-5 text-amber-600 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>'}
                         </div>
                         <div class="min-w-0">
                             <p class="text-sm font-semibold text-navy-900 truncate">${esc(doc.original_filename)}</p>
-                            <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                                <span>${esc(doc.client_name)}</span>
-                                <span>&middot;</span>
-                                <span>${formatBytes(doc.file_size)}</span>
-                                <span>&middot;</span>
-                                <span>${timeAgo(doc.uploaded_at)}</span>
-                            </div>
-                            ${doc.classification ? `
-                                <div class="flex items-center gap-2 mt-2.5 flex-wrap">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-navy-50 text-navy-700">${esc(doc.classification.document_type)}</span>
-                                    ${(doc.classification.parties || []).map(p => `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">${esc(p)}</span>`).join('')}
-                                </div>
-                            ` : ''}
+                            <div class="flex items-center gap-3 mt-1 text-xs text-gray-400"><span>${esc(doc.client_name)}</span><span>&middot;</span><span>${formatBytes(doc.file_size)}</span><span>&middot;</span><span>${timeAgo(doc.uploaded_at)}</span></div>
+                            ${doc.classification ? `<div class="flex items-center gap-2 mt-2 flex-wrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-navy-50 text-navy-700">${esc(doc.classification.document_type)}</span>${(doc.classification.parties||[]).map(p=>`<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">${esc(p)}</span>`).join('')}</div>` : ''}
                             ${doc.error ? `<p class="text-xs text-red-500 mt-2">${esc(doc.error)}</p>` : ''}
                         </div>
                     </div>
                     <svg class="w-5 h-5 text-gray-300 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
                 </div>
-            </div>
-        `).join('');
-    } catch (e) {
-        console.error('Documents refresh failed:', e);
-    }
+            </div>`).join('');
+    } catch (e) { console.error(e); }
 }
 
 // ================================================================== //
-// DOCUMENT DETAIL
+// DOCUMENT DETAIL MODAL
 // ================================================================== //
 async function openDocDetail(docId) {
     try {
+        currentModalDocId = docId;
         const doc = await api(`/documents/${docId}`);
         document.getElementById('modal-title').textContent = doc.original_filename;
         document.getElementById('modal-subtitle').textContent = `${doc.client_name} \u00B7 ${doc.status} \u00B7 ${timeAgo(doc.uploaded_at)}`;
-
-        const content = document.getElementById('modal-content');
-        content.innerHTML = `
-            <!-- Classification -->
-            ${doc.classification ? `
-            <div class="mb-6">
-                <h4 class="text-sm font-semibold text-navy-800 uppercase tracking-wider mb-3">AI Classification</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-navy-50 rounded-xl p-4">
-                        <p class="text-xs text-navy-500 font-medium uppercase">Document Type</p>
-                        <p class="text-lg font-bold text-navy-900 mt-1">${esc(doc.classification.document_type)}</p>
-                    </div>
-                    <div class="bg-navy-50 rounded-xl p-4">
-                        <p class="text-xs text-navy-500 font-medium uppercase">Parties</p>
-                        <div class="mt-1 flex flex-wrap gap-1">
-                            ${(doc.classification.parties || []).map(p => `<span class="inline-block px-2 py-0.5 bg-white rounded text-sm font-medium text-navy-800">${esc(p)}</span>`).join('') || '<span class="text-sm text-gray-400">None detected</span>'}
-                        </div>
-                    </div>
-                    <div class="bg-navy-50 rounded-xl p-4">
-                        <p class="text-xs text-navy-500 font-medium uppercase">Suggested Filename</p>
-                        <p class="text-sm font-medium text-navy-800 mt-1 break-all">${esc(doc.classification.suggested_filename)}</p>
-                    </div>
-                </div>
-            </div>
-            ` : ''}
-
-            <!-- Processing Info -->
-            <div class="mb-6">
-                <h4 class="text-sm font-semibold text-navy-800 uppercase tracking-wider mb-3">Processing Details</h4>
-                <div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div><span class="text-gray-500 block text-xs">Status</span>${statusBadge(doc.status)}</div>
-                    <div><span class="text-gray-500 block text-xs">File Size</span><span class="font-medium">${formatBytes(doc.file_size)}</span></div>
-                    <div><span class="text-gray-500 block text-xs">Markdown Length</span><span class="font-medium">${doc.markdown_length ? doc.markdown_length.toLocaleString() + ' chars' : '-'}</span></div>
-                    <div><span class="text-gray-500 block text-xs">Semantic Chunks</span><span class="font-medium">${doc.num_chunks || '-'}</span></div>
-                </div>
-                ${doc.destination ? `<p class="text-xs text-gray-500 mt-2"><span class="font-medium">Organized to:</span> ${esc(doc.destination)}</p>` : ''}
-                ${doc.error ? `<p class="text-sm text-red-600 mt-2 bg-red-50 p-3 rounded-lg">${esc(doc.error)}</p>` : ''}
-            </div>
-
-            <!-- Semantic Chunks -->
-            ${doc.chunks && doc.chunks.length > 0 ? `
-            <div class="mb-6">
-                <h4 class="text-sm font-semibold text-navy-800 uppercase tracking-wider mb-3">Semantic Sections (${doc.chunks.length})</h4>
-                <div class="space-y-2 max-h-64 overflow-y-auto">
-                    ${doc.chunks.map(c => `
-                        <div class="bg-gray-50 rounded-lg p-3">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="inline-flex items-center justify-center w-5 h-5 rounded bg-navy-100 text-navy-700 text-xs font-bold">${c.header_level || 0}</span>
-                                <span class="text-sm font-medium text-navy-800">${esc(c.header_text) || '(Preamble)'}</span>
-                            </div>
-                            <p class="text-xs text-gray-500 leading-relaxed">${esc(c.content)}</p>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-            ` : ''}
-
-            <!-- Markdown Preview -->
-            ${doc.markdown ? `
-            <div>
-                <h4 class="text-sm font-semibold text-navy-800 uppercase tracking-wider mb-3">Extracted Markdown</h4>
-                <div class="bg-gray-50 rounded-xl p-4 max-h-96 overflow-y-auto">
-                    <pre class="text-xs text-gray-700 whitespace-pre-wrap font-mono leading-relaxed">${esc(doc.markdown)}</pre>
-                </div>
-            </div>
-            ` : ''}
-        `;
-
+        document.getElementById('modal-content').innerHTML = `
+            ${doc.classification ? `<div class="mb-6"><h4 class="text-sm font-semibold text-navy-800 uppercase tracking-wider mb-3">Classification</h4><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="bg-navy-50 rounded-xl p-4"><p class="text-xs text-navy-500 font-medium uppercase">Type</p><p class="text-lg font-bold text-navy-900 mt-1">${esc(doc.classification.document_type)}</p></div><div class="bg-navy-50 rounded-xl p-4"><p class="text-xs text-navy-500 font-medium uppercase">Parties</p><div class="mt-1 flex flex-wrap gap-1">${(doc.classification.parties||[]).map(p=>`<span class="inline-block px-2 py-0.5 bg-white rounded text-sm font-medium text-navy-800">${esc(p)}</span>`).join('')||'<span class="text-sm text-gray-400">None</span>'}</div></div><div class="bg-navy-50 rounded-xl p-4"><p class="text-xs text-navy-500 font-medium uppercase">Suggested Filename</p><p class="text-sm font-medium text-navy-800 mt-1 break-all">${esc(doc.classification.suggested_filename)}</p></div></div></div>` : ''}
+            <div class="mb-6"><h4 class="text-sm font-semibold text-navy-800 uppercase tracking-wider mb-3">Details</h4><div class="bg-gray-50 rounded-xl p-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm"><div><span class="text-gray-500 block text-xs">Status</span>${statusBadge(doc.status)}</div><div><span class="text-gray-500 block text-xs">Size</span><span class="font-medium">${formatBytes(doc.file_size)}</span></div><div><span class="text-gray-500 block text-xs">Extracted Text</span><span class="font-medium">${doc.markdown_length?doc.markdown_length.toLocaleString()+' chars':'-'}</span></div><div><span class="text-gray-500 block text-xs">Sections</span><span class="font-medium">${doc.num_chunks||'-'}</span></div></div>${doc.destination?`<p class="text-xs text-gray-500 mt-2"><span class="font-medium">Filed to:</span> ${esc(doc.destination)}</p>`:''}</div>
+            ${doc.chunks?.length ? `<div class="mb-6"><h4 class="text-sm font-semibold text-navy-800 uppercase tracking-wider mb-3">Sections (${doc.chunks.length})</h4><div class="space-y-2 max-h-48 overflow-y-auto">${doc.chunks.map(c=>`<div class="bg-gray-50 rounded-lg p-3"><div class="flex items-center gap-2 mb-1"><span class="inline-flex items-center justify-center w-5 h-5 rounded bg-navy-100 text-navy-700 text-xs font-bold">${c.header_level||0}</span><span class="text-sm font-medium text-navy-800">${esc(c.header_text)||'(Preamble)'}</span></div><p class="text-xs text-gray-500">${esc(c.content)}</p></div>`).join('')}</div></div>` : ''}
+            ${doc.markdown ? `<div><h4 class="text-sm font-semibold text-navy-800 uppercase tracking-wider mb-3">Extracted Text</h4><div class="bg-gray-50 rounded-xl p-4 max-h-72 overflow-y-auto"><pre class="text-xs text-gray-700 whitespace-pre-wrap font-mono leading-relaxed">${esc(doc.markdown)}</pre></div></div>` : ''}`;
         document.getElementById('doc-modal').classList.remove('hidden');
-    } catch (e) {
-        console.error('Failed to load document:', e);
-    }
+    } catch (e) { console.error(e); }
 }
 
-function closeModal() {
-    document.getElementById('doc-modal').classList.add('hidden');
-}
-
-// Close modal on Escape
+function closeModal() { document.getElementById('doc-modal').classList.add('hidden'); }
+function modalResearch() { if (currentModalDocId) { selectedDocIds.clear(); selectedDocIds.add(currentModalDocId); closeModal(); showView('research'); } }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 // ================================================================== //
@@ -646,215 +601,19 @@ async function refreshBrowser() {
     try {
         const tree = await api('/browse');
         const el = document.getElementById('file-browser');
-
-        if (tree.length === 0) {
-            el.innerHTML = '<p class="text-gray-400 text-center py-12">No organized files yet. Upload and process documents first.</p>';
-            return;
-        }
-
+        if (tree.length === 0) { el.innerHTML = '<p class="text-gray-400 text-center py-12">No organized files yet.</p>'; return; }
         el.innerHTML = '<div class="divide-y divide-gray-50">' + renderTree(tree, 0) + '</div>';
-    } catch (e) {
-        console.error('Browser refresh failed:', e);
-    }
+    } catch (e) { console.error(e); }
 }
 
 function renderTree(items, depth) {
     return items.map(item => {
         const indent = depth * 24;
         if (item.type === 'folder') {
-            return `
-                <div>
-                    <div class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 transition cursor-pointer" style="padding-left: ${20 + indent}px" onclick="this.nextElementSibling.classList.toggle('hidden'); this.querySelector('.folder-arrow').classList.toggle('rotate-90')">
-                        <svg class="folder-arrow w-4 h-4 text-gray-400 transition-transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-                        <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg>
-                        <span class="text-sm font-medium text-gray-800">${esc(item.name)}</span>
-                        <span class="text-xs text-gray-400">${item.children.length} items</span>
-                    </div>
-                    <div>${renderTree(item.children, depth + 1)}</div>
-                </div>
-            `;
-        } else {
-            return `
-                <div class="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50 transition" style="padding-left: ${44 + indent}px">
-                    <div class="flex items-center gap-3 min-w-0">
-                        <svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <div class="min-w-0">
-                            <p class="text-sm text-gray-700 truncate">${esc(item.name)}</p>
-                            <p class="text-xs text-gray-400">${formatBytes(item.size)} &middot; ${new Date(item.modified).toLocaleDateString()}</p>
-                        </div>
-                    </div>
-                    <a href="/api/download?path=${encodeURIComponent(item.path)}" class="px-3 py-1 text-xs font-medium text-navy-600 bg-navy-50 rounded-lg hover:bg-navy-100 transition" download>Download</a>
-                </div>
-            `;
+            return `<div><div class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 cursor-pointer" style="padding-left:${20+indent}px" onclick="this.nextElementSibling.classList.toggle('hidden');this.querySelector('.fa').classList.toggle('rotate-90')"><svg class="fa w-4 h-4 text-gray-400 transition-transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg><svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/></svg><span class="text-sm font-medium text-gray-800">${esc(item.name)}</span><span class="text-xs text-gray-400">${item.children.length}</span></div><div>${renderTree(item.children,depth+1)}</div></div>`;
         }
+        return `<div class="flex items-center justify-between px-5 py-2.5 hover:bg-gray-50" style="padding-left:${44+indent}px"><div class="flex items-center gap-3 min-w-0"><svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><div class="min-w-0"><p class="text-sm text-gray-700 truncate">${esc(item.name)}</p><p class="text-xs text-gray-400">${formatBytes(item.size)}</p></div></div><a href="/api/download?path=${encodeURIComponent(item.path)}" class="px-3 py-1 text-xs font-medium text-navy-600 bg-navy-50 rounded-lg hover:bg-navy-100" download>Download</a></div>`;
     }).join('');
-}
-
-// ================================================================== //
-// BATCH FOLDER PROCESSING
-// ================================================================== //
-let activeBatchId = null;
-let batchPollInterval = null;
-
-async function refreshBatchView() {
-    // If there's an active batch, resume polling
-    if (activeBatchId) startBatchPolling();
-}
-
-async function scanFolder() {
-    const folder = document.getElementById('batch-folder').value.trim();
-    if (!folder) { alert('Please enter a folder path.'); return; }
-
-    const recursive = document.getElementById('batch-recursive').checked;
-    const previewEl = document.getElementById('batch-preview');
-
-    try {
-        previewEl.classList.remove('hidden');
-        previewEl.innerHTML = '<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center text-gray-400 text-sm">Scanning folder...</div>';
-
-        const data = await api('/scan-folder', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ folder_path: folder, recursive }),
-        });
-
-        if (data.total_files === 0) {
-            previewEl.innerHTML = `
-                <div class="bg-amber-50 rounded-xl border border-amber-200 p-5">
-                    <p class="text-sm font-medium text-amber-800">No supported documents found in this folder.</p>
-                    <p class="text-xs text-amber-600 mt-1">Supported types: PDF, DOCX, TIFF, JPEG, PNG, BMP</p>
-                </div>`;
-            return;
-        }
-
-        previewEl.innerHTML = `
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <h4 class="text-sm font-semibold text-navy-800">Files Found: ${data.total_files}</h4>
-                    <span class="text-xs text-gray-400">${esc(data.folder)}</span>
-                </div>
-                <div class="space-y-1 max-h-48 overflow-y-auto">
-                    ${data.files.map(f => `
-                        <div class="flex items-center justify-between py-1.5 px-2 rounded hover:bg-gray-50 text-sm">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-500 uppercase">${f.extension.replace('.', '')}</span>
-                                <span class="text-gray-700 truncate">${esc(f.name)}</span>
-                            </div>
-                            <span class="text-xs text-gray-400 flex-shrink-0 ml-3">${formatBytes(f.size)}</span>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>`;
-    } catch (e) {
-        previewEl.innerHTML = `
-            <div class="bg-red-50 rounded-xl border border-red-200 p-5">
-                <p class="text-sm font-medium text-red-800">Error: ${esc(e.message)}</p>
-            </div>`;
-    }
-}
-
-async function startBatch() {
-    const folder = document.getElementById('batch-folder').value.trim();
-    if (!folder) { alert('Please enter a folder path.'); return; }
-
-    const clientName = document.getElementById('batch-client').value || 'General';
-    const recursive = document.getElementById('batch-recursive').checked;
-    const btn = document.getElementById('batch-start-btn');
-
-    btn.disabled = true;
-    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Starting...';
-
-    try {
-        const data = await api('/batch', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ folder_path: folder, client_name: clientName, recursive }),
-        });
-
-        activeBatchId = data.batch_id;
-
-        // Show progress
-        document.getElementById('batch-preview').classList.add('hidden');
-        const progressEl = document.getElementById('batch-progress');
-        progressEl.classList.remove('hidden');
-        document.getElementById('batch-progress-label').textContent = `0 of ${data.total_files} files`;
-
-        // Start polling batch status
-        startBatchPolling();
-
-    } catch (e) {
-        alert('Failed to start batch: ' + e.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Process All';
-    }
-}
-
-function startBatchPolling() {
-    if (batchPollInterval) clearInterval(batchPollInterval);
-    batchPollInterval = setInterval(async () => {
-        if (!activeBatchId) return;
-        try {
-            const job = await api(`/batch/${activeBatchId}`);
-            updateBatchProgress(job);
-
-            if (job.status === 'completed') {
-                clearInterval(batchPollInterval);
-                batchPollInterval = null;
-                showBatchResults(job);
-            }
-        } catch (e) { /* ignore */ }
-    }, 1500);
-    // Also start main polling so dashboard/documents update
-    startPolling();
-}
-
-function updateBatchProgress(job) {
-    const pct = job.total_files > 0 ? Math.round((job.current_index / job.total_files) * 100) : 0;
-    document.getElementById('batch-progress-label').textContent = `${job.current_index} of ${job.total_files} files`;
-    document.getElementById('batch-progress-pct').textContent = `${pct}%`;
-    document.getElementById('batch-progress-bar').style.width = `${pct}%`;
-    document.getElementById('batch-current-file').textContent = job.current_file ? `Currently processing: ${job.current_file}` : '';
-    document.getElementById('batch-status-badge').innerHTML = statusBadge(job.status);
-}
-
-function showBatchResults(job) {
-    document.getElementById('batch-progress').classList.add('hidden');
-    const resultsEl = document.getElementById('batch-results');
-    resultsEl.classList.remove('hidden');
-
-    document.getElementById('batch-results-summary').innerHTML = `
-        <div class="bg-navy-50 rounded-lg p-3 text-center">
-            <p class="text-2xl font-bold text-navy-900">${job.total_files}</p>
-            <p class="text-xs text-navy-600 uppercase font-medium">Total Files</p>
-        </div>
-        <div class="bg-emerald-50 rounded-lg p-3 text-center">
-            <p class="text-2xl font-bold text-emerald-600">${job.succeeded}</p>
-            <p class="text-xs text-emerald-700 uppercase font-medium">Succeeded</p>
-        </div>
-        <div class="bg-red-50 rounded-lg p-3 text-center">
-            <p class="text-2xl font-bold text-red-600">${job.failed_count}</p>
-            <p class="text-xs text-red-700 uppercase font-medium">Failed</p>
-        </div>
-    `;
-
-    const files = Object.values(job.files || {});
-    document.getElementById('batch-results-files').innerHTML = files.map(f => `
-        <div class="flex items-center justify-between py-2 px-3 rounded-lg ${f.status === 'completed' ? 'bg-emerald-50/50' : 'bg-red-50/50'}">
-            <div class="flex items-center gap-3 min-w-0">
-                ${f.status === 'completed'
-                    ? '<svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>'
-                    : '<svg class="w-4 h-4 text-red-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>'
-                }
-                <div class="min-w-0">
-                    <p class="text-sm font-medium text-gray-800 truncate">${esc(f.filename)}</p>
-                    ${f.classification ? `<p class="text-xs text-gray-500">${esc(f.classification.document_type)} ${f.classification.parties?.length ? '- ' + f.classification.parties.join(', ') : ''}</p>` : ''}
-                    ${f.error ? `<p class="text-xs text-red-500">${esc(f.error)}</p>` : ''}
-                </div>
-            </div>
-            ${f.destination ? `<span class="text-xs text-gray-400 flex-shrink-0 ml-3 max-w-xs truncate" title="${esc(f.destination)}">${esc(f.destination.split('/').slice(-2).join('/'))}</span>` : ''}
-        </div>
-    `).join('');
 }
 
 // ================================================================== //
@@ -865,66 +624,29 @@ function startPolling() {
     pollInterval = setInterval(async () => {
         try {
             const docs = await api('/documents');
-            const anyProcessing = docs.some(d => !['completed', 'failed'].includes(d.status));
-
+            const any = docs.some(d => !['completed','failed'].includes(d.status));
             if (currentView === 'dashboard') refreshDashboard();
             if (currentView === 'documents') refreshDocuments();
-
-            if (!anyProcessing) {
-                clearInterval(pollInterval);
-                pollInterval = null;
-            }
-        } catch (e) { /* ignore polling errors */ }
+            if (!any) { clearInterval(pollInterval); pollInterval = null; }
+        } catch (e) {}
     }, 2000);
 }
 
 // ================================================================== //
 // HELPERS
 // ================================================================== //
-function esc(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = String(str);
-    return div.innerHTML;
+function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+function formatBytes(b) { if(!b)return'0 B'; const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k)); return parseFloat((b/Math.pow(k,i)).toFixed(1))+' '+s[i]; }
+function timeAgo(iso) { if(!iso)return''; const d=(Date.now()-new Date(iso).getTime())/1000; if(d<60)return'just now'; if(d<3600)return Math.floor(d/60)+'m ago'; if(d<86400)return Math.floor(d/3600)+'h ago'; return Math.floor(d/86400)+'d ago'; }
+function statusIcon(s) {
+    if(s==='completed') return '<div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center"><svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>';
+    if(s==='failed') return '<div class="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center"><svg class="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></div>';
+    return '<div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center"><svg class="w-4 h-4 text-amber-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>';
 }
-
-function formatBytes(bytes) {
-    if (!bytes) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-}
-
-function timeAgo(iso) {
-    if (!iso) return '';
-    const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-    if (diff < 60) return 'just now';
-    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-    return Math.floor(diff / 86400) + 'd ago';
-}
-
-function statusIcon(status) {
-    switch (status) {
-        case 'completed': return '<div class="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>';
-        case 'failed': return '<div class="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></div>';
-        default: return '<div class="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-amber-500 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>';
-    }
-}
-
-function statusBadge(status) {
-    const map = {
-        queued: ['bg-gray-100 text-gray-600', 'Queued'],
-        extracting: ['bg-blue-50 text-blue-700', 'Extracting'],
-        chunking: ['bg-purple-50 text-purple-700', 'Chunking'],
-        classifying: ['bg-amber-50 text-amber-700', 'Classifying'],
-        organizing: ['bg-teal-50 text-teal-700', 'Organizing'],
-        completed: ['bg-emerald-50 text-emerald-700', 'Completed'],
-        failed: ['bg-red-50 text-red-700', 'Failed'],
-    };
-    const [cls, label] = map[status] || ['bg-gray-100 text-gray-600', status];
-    return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cls}">${label}</span>`;
+function statusBadge(s) {
+    const m = { queued:['bg-gray-100 text-gray-600','Queued'], extracting:['bg-blue-50 text-blue-700','Extracting'], chunking:['bg-purple-50 text-purple-700','Chunking'], classifying:['bg-amber-50 text-amber-700','Classifying'], organizing:['bg-teal-50 text-teal-700','Organizing'], completed:['bg-emerald-50 text-emerald-700','Completed'], failed:['bg-red-50 text-red-700','Failed'] };
+    const [c,l] = m[s] || ['bg-gray-100 text-gray-600', s];
+    return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${c}">${l}</span>`;
 }
 
 // ================================================================== //

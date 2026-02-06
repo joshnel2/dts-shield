@@ -274,6 +274,112 @@ async def get_stats():
 
 
 # ------------------------------------------------------------------ #
+# Research Features — Q&A, Key Info, Summary, Search
+# ------------------------------------------------------------------ #
+
+
+class ChatRequest(BaseModel):
+    """Request body for document Q&A."""
+    doc_id: str | None = None
+    doc_ids: list[str] | None = None
+    question: str
+
+
+class SearchRequest(BaseModel):
+    """Request body for cross-document search."""
+    query: str
+    max_results: int = 20
+
+
+@app.post("/api/chat")
+async def chat_with_document(req: ChatRequest):
+    """Ask a question about one or more documents."""
+    from legal_doc_engine.research import ask_document, ask_documents
+
+    if not req.question.strip():
+        raise HTTPException(400, "Question cannot be empty.")
+
+    # Single document Q&A
+    if req.doc_id:
+        if req.doc_id not in _documents:
+            raise HTTPException(404, "Document not found.")
+        doc = _documents[req.doc_id]
+        if not doc.get("markdown"):
+            raise HTTPException(400, "Document has not been processed yet.")
+        answer = await asyncio.to_thread(ask_document, doc["markdown"], req.question)
+        return {"answer": answer, "doc_id": req.doc_id}
+
+    # Multi-document Q&A
+    if req.doc_ids:
+        docs = []
+        for did in req.doc_ids:
+            if did not in _documents:
+                continue
+            doc = _documents[did]
+            if doc.get("markdown"):
+                docs.append({"name": doc.get("original_filename", did), "markdown": doc["markdown"]})
+        if not docs:
+            raise HTTPException(400, "No processed documents found for the given IDs.")
+        answer = await asyncio.to_thread(ask_documents, docs, req.question)
+        return {"answer": answer, "doc_ids": req.doc_ids}
+
+    # Search all documents if no specific doc given
+    raise HTTPException(400, "Provide doc_id or doc_ids.")
+
+
+@app.post("/api/key-info/{doc_id}")
+async def get_key_info(doc_id: str):
+    """Extract structured key information from a document."""
+    from legal_doc_engine.research import extract_key_info
+
+    if doc_id not in _documents:
+        raise HTTPException(404, "Document not found.")
+    doc = _documents[doc_id]
+    if not doc.get("markdown"):
+        raise HTTPException(400, "Document has not been processed yet.")
+
+    # Cache: don't re-extract if already done
+    if doc.get("key_info"):
+        return doc["key_info"]
+
+    info = await asyncio.to_thread(extract_key_info, doc["markdown"])
+    doc["key_info"] = info.raw
+    return info.raw
+
+
+@app.post("/api/summary/{doc_id}")
+async def get_summary(doc_id: str):
+    """Generate an executive summary of a document."""
+    from legal_doc_engine.research import summarize_document
+
+    if doc_id not in _documents:
+        raise HTTPException(404, "Document not found.")
+    doc = _documents[doc_id]
+    if not doc.get("markdown"):
+        raise HTTPException(400, "Document has not been processed yet.")
+
+    # Cache
+    if doc.get("summary"):
+        return {"summary": doc["summary"]}
+
+    summary = await asyncio.to_thread(summarize_document, doc["markdown"])
+    doc["summary"] = summary
+    return {"summary": summary}
+
+
+@app.post("/api/search")
+async def search_docs(req: SearchRequest):
+    """Search across all processed documents."""
+    from legal_doc_engine.research import search_documents
+
+    if not req.query.strip():
+        raise HTTPException(400, "Query cannot be empty.")
+
+    results = search_documents(_documents, req.query, max_results=req.max_results)
+    return {"query": req.query, "total_results": len(results), "results": results}
+
+
+# ------------------------------------------------------------------ #
 # Batch / Folder Processing
 # ------------------------------------------------------------------ #
 

@@ -57,6 +57,41 @@ class TestWebRoutes:
         assert resp.status_code == 404
 
 
+class TestResearchRoutes:
+    """Tests for research API endpoints."""
+
+    def test_chat_rejects_empty_question(self, client: TestClient) -> None:
+        resp = client.post("/api/chat", json={"doc_id": "x", "question": ""})
+        assert resp.status_code == 400
+
+    def test_chat_rejects_missing_doc(self, client: TestClient) -> None:
+        resp = client.post("/api/chat", json={"doc_id": "nonexistent", "question": "test"})
+        assert resp.status_code == 404
+
+    def test_chat_requires_doc_id(self, client: TestClient) -> None:
+        resp = client.post("/api/chat", json={"question": "test"})
+        assert resp.status_code == 400
+
+    def test_search_rejects_empty_query(self, client: TestClient) -> None:
+        resp = client.post("/api/search", json={"query": ""})
+        assert resp.status_code == 400
+
+    def test_search_returns_results_structure(self, client: TestClient) -> None:
+        resp = client.post("/api/search", json={"query": "test"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "results" in data
+        assert "total_results" in data
+
+    def test_summary_rejects_missing_doc(self, client: TestClient) -> None:
+        resp = client.post("/api/summary/nonexistent")
+        assert resp.status_code == 404
+
+    def test_keyinfo_rejects_missing_doc(self, client: TestClient) -> None:
+        resp = client.post("/api/key-info/nonexistent")
+        assert resp.status_code == 404
+
+
 class TestBatchRoutes:
     """Tests for batch/folder processing API endpoints."""
 
